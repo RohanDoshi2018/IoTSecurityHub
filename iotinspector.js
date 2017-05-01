@@ -70,9 +70,9 @@ function makeDeviceList () {
 	devices.push(bpm);
 	devices.push(scale);
 	devices.push(blood);
-	devices.push(bpm2);
-	devices.push(scale2);
-	devices.push(nest);
+	// devices.push(bpm2);
+	// devices.push(scale2);
+	// devices.push(nest);
 
 	showDevices(devices);
 
