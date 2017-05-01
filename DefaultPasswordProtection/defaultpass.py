@@ -43,7 +43,7 @@ def changePassword(ip, user, password):
 		#continue
 	return newPass
 
-def main():
+def check_passwords():
 	
 	IPrange1 = "10.0.0.0/8" # private-use
 	IPrange2 = "172.16.0.0/12" # private-use
@@ -186,6 +186,4 @@ def main():
 	userpass.close()
 	successes.close()
 	#outputfile.close()
-
-main()
 

@@ -137,11 +137,11 @@ def analyze(filename):
 
   f.close()
 
-
-filenames = glob.glob('*.pcap')
-for filename in filenames:
-  # print "***************************** " + filename + " *******************************"
-  analyze(filename)
+def analyze_all():
+  filenames = glob.glob('*.pcap')
+  for filename in filenames:
+    # print "***************************** " + filename + " *******************************"
+    analyze(filename)
 
 
 
