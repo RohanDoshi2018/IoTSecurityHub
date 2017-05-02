@@ -1,7 +1,7 @@
 from __future__ import print_function
 from flask import Flask, request, url_for, redirect, render_template, session
 import os, sys
-from DefaultPasswordProtection import defaultpass
+#from DefaultPasswordProtection import defaultpass
 from packetInspection import analyze
 import json
 
@@ -22,21 +22,24 @@ def update():
 	ip_to_name = {
 		'172.24.1.81':'WeMo Smart Switches',
 		'172.24.1.107':'YI Home Camera',
-		'172.24.1.63':'Android Phone Interface With Blood Pressure Monitor'
+		'172.24.1.63':'Android Phone Interface With Blood Pressure Monitor',
+		'172.24.1.77': 'Withings Blood Pressure Monitor'
 	}
 
 	# Gudrun
 	password_results = {
 		'172.24.1.81':  {"port": 22, "defaultUsr": 'root', "defaulsPass": 'admin', "newPass": '2372jhkxdfxf'}, 
 		'172.24.1.107':  {"port": 22, "defaultUsr": 'admin', "defaulsPass": 'pass', "newPass": 'k4Txp02IqmVe'}, 
-		'172.24.1.63':  {"port": 22, "defaultUsr": 'user', "defaulsPass": 'pass', "newPass": 'vcx46666n334'} 
+		'172.24.1.63':  {"port": 22, "defaultUsr": 'user', "defaulsPass": 'pass', "newPass": 'vcx46666n334'},
+		'172.24.1.77':  {"port": 22, "defaultUsr": 'user', "defaulsPass": 'pass', "newPass": 'ajlskdfjae'} 
 	}
 
 	# Daniel
-	sensitive_data_leak_results = {'172.24.1.81': ["Daniel", "Blood Pressure", "ID = 123456"], '172.24.1.107': [], '172.24.1.63' : []}
+	sensitive_data_leak_results = analyze.analyze_all()
+	#sensitive_data_leak_results = {'172.24.1.81': ["Daniel", "Blood Pressure", "ID = 123456"], '172.24.1.107': [], '172.24.1.63' : [], '172.24.1.77': ["blood pressure"]}
 
 	# Rohan 
-	attack_results = {'172.24.1.81': False, '172.24.1.107': True, '172.24.1.63' : True}
+	attack_results = {'172.24.1.81': False, '172.24.1.107': True, '172.24.1.63' : True, '172.24.1.77': True}
 
 	devices = []
 	for ip, name in ip_to_name.items():
@@ -49,7 +52,6 @@ def update():
 			device['newPass'] = password_results[ip]['newPass'] 			
 		else: 
 			device['is_password_insecure'] = False
-
 
 		if len(sensitive_data_leak_results[ip]) > 0:
 			device['is_sensitive_info'] = True
