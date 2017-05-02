@@ -107,8 +107,8 @@ def main():
 			ssh = paramiko.SSHClient()
 			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 			try:
-				print "user: "+user
-				print "password: "+passw
+				#print "user: "+user
+				#print "password: "+passw
 				ssh.connect(ip, username=user, password=passw)
 				#print "try"
 			except AuthenticationException:
@@ -234,7 +234,7 @@ def main():
 		finalIPrange = ipParsed[0]+'.'+ipParsed[1]+'.'+ipParsed[2]+'.0/24'
 		#print finalIPrange
 
-		print "finaliprange: " + finalIPrange
+		#print "finaliprange: " + finalIPrange
 		# call bash command to run ZMap on the network
 		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses.txt", finalIPrange]) # for Raspberry Pi
 
