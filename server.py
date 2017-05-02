@@ -1,7 +1,7 @@
 from __future__ import print_function
 from flask import Flask, request, url_for, redirect, render_template, session
 import os, sys
-#from DefaultPasswordProtection import defaultpass
+# from DefaultPasswordProtection import defaultpass
 from packetInspection import analyze
 import json
 
@@ -15,7 +15,32 @@ app.config.update(
 
 @app.route('/')
 def index():
-	return render_template('index.html')
+
+	devices = [
+		{
+			'ip': '172.24.1.81',
+			'name': 'WeMo Smart Switch',
+			'is_password_insecure': False,
+			'is_sensitive_info': False,
+			'is_attack': False
+		}, 
+		{
+			'ip': '172.24.1.107',
+			'name': 'YI Home Camera',
+			'is_password_insecure': False,
+			'is_sensitive_info': False,
+			'is_attack': False
+		}, 	
+		{
+			'ip': '172.24.1.63',
+			'name': 'Android Phone Interface With Blood Pressure Monitor',
+			'is_password_insecure': False,
+			'is_sensitive_info': False,
+			'is_attack': False
+		} 
+	]
+
+	return render_template('index.html', devices = devices)
 
 @app.route('/update')
 def update():
@@ -36,7 +61,7 @@ def update():
 
 	# Daniel
 	sensitive_data_leak_results = analyze.analyze_all()
-	#sensitive_data_leak_results = {'172.24.1.81': ["Daniel", "Blood Pressure", "ID = 123456"], '172.24.1.107': [], '172.24.1.63' : [], '172.24.1.77': ["blood pressure"]}
+	# sensitive_data_leak_results = {'172.24.1.81': ["Daniel", "Blood Pressure", "ID = 123456"], '172.24.1.107': [], '172.24.1.63' : [], '172.24.1.77': ["blood pressure"]}
 
 	# Rohan 
 	attack_results = {'172.24.1.81': False, '172.24.1.107': True, '172.24.1.63' : True, '172.24.1.77': True}

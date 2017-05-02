@@ -174,6 +174,6 @@ def analyze_all():
     ipdata = analyze(filename, ipdata)
   return ipdata
 
-ipdata = analyze_all()
-print ipdata
+# ipdata = analyze_all()
+# print ipdata
 
