@@ -6,10 +6,10 @@ import sys
 import telnetlib
 import paramiko
 import subprocess
-from subprocess import call
+from subprocess import call, check_output
 from subprocess import Popen, PIPE, STDOUT
 import json
-from paramiko.ssh_exception import AuthenticationException
+from paramiko.ssh_exception import AuthenticationException, SSHException
 import time
 import string
 import random
@@ -83,9 +83,9 @@ def changePassword(ip, port, user, password):
 def main():
 	
 	#IPrange1 = "10.0.0.0/8" # private-use
-	#IPrange2 = "172.16.0.0/12" # private-use
+	#IPrange = "172.16.0.0/12" # private-use
 	#IPrange3 = "192.168.0.0/16" # private-use
-	IPrange = "172.24.1.0/24"
+	#IPrange = "172.24.1.0/24" # for the Pi
 
 	ports = open('ports.txt', 'r') # testing with only 22 or 23 on there
 	#userpass = open('defuserpass.txt', 'r') # actual file
@@ -96,6 +96,7 @@ def main():
 	# construct a dictionary with functions (case/switch)
 	def ssh(ip):
 		#for all IP addresses found on network:
+		success = 0
 		for line in userpass:
 			# parse device info
 			y = line.split('\t')
@@ -106,14 +107,23 @@ def main():
 			ssh = paramiko.SSHClient()
 			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 			try:
+				print "user: "+user
+				print "password: "+passw
 				ssh.connect(ip, username=user, password=passw)
 				#print "try"
 			except AuthenticationException:
-				obj_json = {ip:{u"port":22, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+				
+				#obj_json = {ip:{u"port":22, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
 				# dict with IP as key and value is a dictionary of the other stuff
-				deviceList.append(obj_json)
+				#deviceList.append(obj_json)
 				#print "exception here"
 				continue
+			except SSHException:
+				print "Caught an SSHException"
+				continue
+
+
+			time.sleep(4)
 
 			# save info about devices with default username and password 	
 			successes.write(ip + '\t' + user + '\t' + passw.strip() + '\t' + '22' + '\n')
@@ -132,15 +142,20 @@ def main():
 				newPass = changePassword(correctIP, 22, correctUsr, correctPass)
 				#obj_json = {u"IPaddress":ip, u"port":22, u"defaultUsr":user, u"defaultPass":passw, u"newPass":newPass}
 				if newPass != 0:
+					success = 1
 					obj_json = {ip:{u"port":22, u"defaultUsr":user, u"defaultPass":passw, u"newPass":newPass}}
 					deviceList.append(obj_json)
 				#print(json.dumps(obj_json))
 
 			devices.close()
+		if success == 0:
+			obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+			deviceList.append(obj_json)
 
 	def telnet(ip):
 		HOST = ip
 		#for ip in IPaddresses:
+		success = 0
 		for line in userpass:
 			# parse device info
 			y = line.split('\t')
@@ -153,21 +168,25 @@ def main():
 			response = ""
 			while not "Password: " in response:
 				response += p.stdout.read(1)
+				#print "resp: " + response
 
+			time.sleep(2)
 			p.stdin.write(password + '\n')
 			p.stdin.flush()
 
-			time.sleep(4)
-			response = p.stdout.readline()
+			time.sleep(6)
+			response = p.stdout.read(19)
 			# try next username password combination if this one did not work
-			#if "Login incorrect" in response:
-			if "login" in response:
+			#print response
+			if "Login incorrect" in response:
+			#if "login" in response:
 				#obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}
-				obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
-				deviceList.append(obj_json)
+				#obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+				#deviceList.append(obj_json)
 				continue
 			# save info about devices with default username and password 	
 			else:
+				success = 1
 				successes.write(ip + '\t' + user + '\t' + password.strip() + '\t' + '23' + '\n')
 				successes.close()
 
@@ -192,31 +211,36 @@ def main():
 				#print(json.dumps(obj_json))
 
 			devices.close()
+		if success == 0:
+			obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+			deviceList.append(obj_json)
 
 	options = {22 : ssh,
 				23 : telnet,
 	}
 
 	for p in ports:
+
+		inetAddress = check_output(["ifconfig", "en0", "inet"])
+		#print inetAddress #string
+		ipAddress = ""
+		i = 0
+		length = len(inetAddress)
+		#print inetAddress + '\n'
+		parsed = inetAddress.split()
+		#print parsed[5] # IP address
+		ipParsed = parsed[5].split('.')
+
+		finalIPrange = ipParsed[0]+'.'+ipParsed[1]+'.'+ipParsed[2]+'.0/24'
+		#print finalIPrange
+
+		print "finaliprange: " + finalIPrange
 		# call bash command to run ZMap on the network
-		# writes out the IP addresses on the network to a file
-		# COMMENTED OUT FOR DEMO
-		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses1.txt", IPrange1, "--max-sendto-failures", "17000000"])
-		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses2.txt", IPrange2, "--max-sendto-failures", "1000000"])
-		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses3.txt", IPrange3, "--max-sendto-failures", "1000000"])
-		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses.txt", IPrange]) # for Raspberry Pi
+		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses.txt", finalIPrange]) # for Raspberry Pi
 
-		# concatenate the 3 textfiles created
-		# COMMENTED OUT FOR PRESENTATION
-		# filenames = ['IPaddresses1.txt', 'IPaddresses2.txt', 'IPaddresses3.txt']
-		# with open('IPaddresses.txt', 'w') as outfile:
-		# 	for fname in filenames:
-		# 		with open(fname) as infile:
-		# 			outfile.write(infile.read())
-
-		# go throught the IP addresses found on the network
+		# go throught the IP addresses found on the network within the specified range
 		IPaddresses = open('IPaddresses.txt', 'r')
-		for ip in IPaddresses:
+		for ip in IPaddresses: 
 			# for ssh port:
 			if p == '22':
 				options[22](ip.strip())
