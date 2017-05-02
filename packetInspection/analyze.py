@@ -41,6 +41,8 @@ def analyze(filename, ipdata):
   payloads=[]
 
   for ts, pkt in pcap:
+      if counter > 2000:
+        return ipdata
       counter+=1
       eth=dpkt.ethernet.Ethernet(pkt) 
       if eth.type!=dpkt.ethernet.ETH_TYPE_IP:
