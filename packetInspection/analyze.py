@@ -21,7 +21,7 @@ def format(line):
   return string
 
 def analyze(filename, ipdata):
-  dictionary = "packetInspection/pif.txt"
+  dictionary = "data/pif.txt"
   with open(dictionary) as file:
     lines = file.readlines()
 
