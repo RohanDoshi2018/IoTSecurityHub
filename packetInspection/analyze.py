@@ -71,7 +71,6 @@ def analyze(filename, ipdata):
             if (ret[1] < 128):
               asc.append(tcp.data)
               
-
             # shannon entropy test
             if (ret[0] < 6):
               sha.append(tcp.data)

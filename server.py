@@ -1,8 +1,10 @@
 from __future__ import print_function
 from flask import Flask, request, url_for, redirect, render_template, session
 import os, sys
+from ml_anomaly_detection import anomaly_detection
 # from DefaultPasswordProtection import defaultpass
 from packetInspection import analyze
+
 import json
 
 app = Flask(__name__)
@@ -37,7 +39,14 @@ def index():
 			'is_password_insecure': False,
 			'is_sensitive_info': False,
 			'is_attack': False
-		} 
+		}, 	
+		{
+			'ip': '172.24.1.77',
+			'name': 'Withings Blood Pressure Monitor',
+			'is_password_insecure': False,
+			'is_sensitive_info': False,
+			'is_attack': False
+		}  
 	]
 
 	return render_template('index.html', devices = devices)
@@ -64,7 +73,9 @@ def update():
 	# sensitive_data_leak_results = {'172.24.1.81': ["Daniel", "Blood Pressure", "ID = 123456"], '172.24.1.107': [], '172.24.1.63' : [], '172.24.1.77': ["blood pressure"]}
 
 	# Rohan 
-	attack_results = {'172.24.1.81': False, '172.24.1.107': True, '172.24.1.63' : True, '172.24.1.77': True}
+	attack_results = anomaly_detection.check_for_anomalies()
+	attack_results['172.24.1.77'] = True # Don't have features for this IP address...
+	# attack_results =  = {'172.24.1.81': False, '172.24.1.107': True, '172.24.1.63' : True, '172.24.1.77': True}
 
 	devices = []
 	for ip, name in ip_to_name.items():
