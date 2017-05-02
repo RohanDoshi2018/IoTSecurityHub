@@ -5,151 +5,85 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="{{ url_for('static', filename='iotinspector.js') }}"></script>
-
 </head>
 <body> 
 
   <nav class="navbar navbar-inverse">
     <a class="navbar-brand" href="#">IoT Inspector</a>
+    <button style="margin-top: 8px;" type="button" class="btn btn-primary text-center""><a href="/update" style="color:white">Update</a></button>
   </nav>
   <div id="dashboard" class="container" style="background:WhiteSmoke">
-    <h2>Connected Devices Dashboard</h2>
-    <br>
-    <div id="panels">
-    </div>
-  </div>
+    <h2>Connected Devices Dashboard</h2><br>
 
-  <!-- Modal Password-->
-  <div class="modal fade" id="passModal1" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content-->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Password Security Information</h4>
-        </div>
-        <div class="modal-body">
-          <p>This is information about your password security.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    {% for device in devices %}
+      <div id="panels">
+        <div class='panel panel-default'> 
+          <h2 id="deviceName" style='margin-left:20px'>{{device.name}}</h2>
+          <div class="row" style="margin-left: 20px">
+            <div class="col-sm-2">
+              <h3>Password</h3>
+            </div>
+            <div class="col-sm-1">
+              {% if device.is_sensitive_info == True %}  
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:red;color:white'><i class='glyphicon glyphicon-remove'></i></button>              
+              {% else %}
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:green;color:white'><i class='glyphicon glyphicon-ok'></i></button>
+              {% endif %}
+            </div>
+            <div class="col-sm-9">
+              {% if device.is_sensitive_info == True %}  
+                <h4>Your device is potentially leaking sensitive information:</h4>
+                <h4>{{device.sensitive_info}}</h4>
+              {% else %}
+                <h4>Your device is properly encrypting your information. </h4>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row" style="margin-left: 20px">
+            <div class="col-sm-2">
+              <h3>Privacy</h3>
+            </div>
+            <div class="col-sm-1">
+              {% if device.is_password_insecure == True %}  
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:red;color:white'><i class='glyphicon glyphicon-remove'></i></button>              
+              {% else %}
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:green;color:white'><i class='glyphicon glyphicon-ok'></i></button>
+              {% endif %}
+
+            </div>
+            <div class="col-sm-9">
+              {% if device.is_password_insecure == True %}  
+                <h4>Your device has an insecure password on port 22. Here is a new suggested, secure password: {{device.newPass}}</h4>
+              {% else %}
+                <h4>All the passwords are secure.</h4>
+              {% endif %}      
+            </div>  
+          </div>
+
+          <div class="row" style="margin-left: 20px">
+            <div class="col-sm-2">
+              <h3>Behavior</h3>
+            </div>
+            <div class="col-sm-1">
+              {% if device.is_attack == True %}  
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:red;color:white'><i class='glyphicon glyphicon-remove'></i></button>              
+              {% else %}
+                <button type='button' class='btn btn-default btn-circle btn-xl' style='margin-top:15px;background:green;color:white'><i class='glyphicon glyphicon-ok'></i></button>
+              {% endif %}
+            </div>
+            <div class="col-sm-9">
+              {% if device.is_attack == True %}  
+                <h4>Your device is sending attack attack!</h4>
+              {% else %}
+                <h4>Your device is sending normal traffic.</h4>
+              {% endif %}      
+            </div>
+          </div>
         </div>
       </div>
-      
-    </div>
-  </div>
+    {% endfor %}
 
-  <!-- Modal Privacy-->
-  <div class="modal fade" id="privModal1" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content-->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Privacy Informaton</h4>
-        </div>
-        <div class="modal-body">
-          <p>This is information about your the data your devices are transmitting.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      
-    </div>
   </div>
-
-  <!-- Modal Behavior -->
-  <div class="modal fade" id="bhvrModal1" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content-->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Device Behavior Information</h4>
-        </div>
-        <div class="modal-body">
-          <p>This is information about the behavior of your devices.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      
-    </div>
-  </div>
-
-  <!-- Modal Password Bad -->
-  <div class="modal fade" id="passModal0" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content -->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Password Security Information</h4>
-        </div>
-        <div class="modal-body">
-          <p>WE DETECTED AN INSECURE PASSWORD: The new password is ______________________</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      
-    </div>
-  </div>
-
-  <!-- Modal Privacy Bad -->
-  <div class="modal fade" id="privModal0" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content-->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Privacy Informaton</h4>
-        </div>
-        <div class="modal-body">
-          <p>WE DETECTED YOUR DEVICE TRANSMITTING SENSITIVE UNENCRYPTED DATA! Here's a sample of what we found: _________________________.</p>
-          <br>
-          <p>Please contact your device manufacturer!!</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      
-    </div>
-  </div>
-
-  <!-- Modal Behavior Bad -->
-  <div class="modal fade" id="bhvrModal0" role="dialog" style="margin-top:300px">
-    <div class="modal-dialog">
-    
-      <!-- Modal content-->
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Device Behavior Information</h4>
-        </div>
-        <div class="modal-body">
-          <p>YOUR DEVICE HAS BEEN HACKED!!! IT'S BEING USED IN A DDOS ATTACK!!</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-      
-    </div>
-  </div>
-
-<script type="text/javascript">
-  makeDeviceList();
-</script>
 </body>
 </html>
