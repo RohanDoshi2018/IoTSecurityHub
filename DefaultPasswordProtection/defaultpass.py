@@ -15,44 +15,81 @@ import string
 import random
 from itertools import izip
 
-def changePassword(ip, user, password):
+def changePassword(ip, port, user, password):
 	#newPass = 'hello1234'
 
 	# generate a random password
 	N = 12
 	newPass = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(N))
-	print "random: "+ newPass
+	#print "random: "+ newPass
 
-	# establish ssh connection
-	# COMMENTED OUT FOR TESTING
-	# ssh = paramiko.SSHClient()
-	# ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	# try:
-	# 	# log onto device
-	# 	ssh.connect(ip, username=user, password=password)
-	# 	# change the password of the device
-	# 	stdin, stdout, stderr = ssh.exec_command("passwd")
-	# 	stdin.write(password+'\n')
-	# 	stdin.write(newPass+'\n')
-	# 	stdin.write(newPass+'\n')
-	# 	stdin.flush()
-
-	# 	print "try"
-	# except AuthenticationException:
-	# 	print "exception 1"
-		#continue
-	return newPass
-
-def check_passwords():
+	#establish ssh connection
+	#COMMENTED OUT FOR TESTING
+	if port == 22:
+		ssh = paramiko.SSHClient()
+		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		try:
+			# log onto device
+			ssh.connect(ip, username=user, password=password)
+			# change the password of the device
+			stdin, stdout, stderr = ssh.exec_command("passwd")
+			stdin.write(password+'\n')
+			stdin.write(newPass+'\n')
+			stdin.write(newPass+'\n')
+			stdin.flush()
+			#print "try"
+			return newPass
+		except AuthenticationException:
+			print "exception 1"
+			return 0
+			#continue
+	# elif port == 23:
+	# 	# try to establish a telnet connection using a default username password combination
+	# 	p = Popen(["telnet", "-l", user, ip],stdin=PIPE,stdout=PIPE,stderr=PIPE)
 	
-	IPrange1 = "10.0.0.0/8" # private-use
-	IPrange2 = "172.16.0.0/12" # private-use
-	IPrange3 = "192.168.0.0/16" # private-use
-	#IPrange = "172.24.1.0/24"
+	# 	response = ""
+	# 	while not "Password: " in response:
+	# 		response += p.stdout.read(1)
+
+	# 	p.stdin.write(password + '\n')
+	# 	p.stdin.flush()
+
+	# 	time.sleep(4)
+	# 	response = p.stdout.readline()
+	# 	# try next username password combination if this one did not work
+	# 	#if "Login incorrect" in response:
+	# 	if "login" in response:
+	# 		#obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}
+	# 		obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+	# 		deviceList.append(obj_json)
+	# 		#continue
+	# 	# save info about devices with default username and password 	
+	# 	else:
+	# 		# log onto device
+	# 		#ssh.connect(ip, username=user, password=password)
+	# 		# change the password of the device
+	# 		#stdin, stdout, stderr = p.exec_command("passwd")
+	# 		#p = Popen(["passwd"])
+	# 		#p.stdin.write("passwd"+'\n')
+	# 		#time.sleep(4)
+	# 		print "password:" + newPass
+	# 		pp = Popen(["echo", "hello"],stdin=PIPE,stdout=PIPE,stderr=PIPE) #p.stdin.write(password+'\n')
+	# 		p.stdin.write(newPass+'\n')
+	# 		p.stdin.write(newPass+'\n')
+	# 		p.stdin.flush()
+	# 		#print "try"
+	# 		return newPass
+
+def main():
+	
+	#IPrange1 = "10.0.0.0/8" # private-use
+	#IPrange2 = "172.16.0.0/12" # private-use
+	#IPrange3 = "192.168.0.0/16" # private-use
+	IPrange = "172.24.1.0/24"
 
 	ports = open('ports.txt', 'r') # testing with only 22 or 23 on there
-	userpass = open('defuserpass.txt', 'r') # actual file
-	#userpass = open('testpass.txt', 'r') # for testing
+	#userpass = open('defuserpass.txt', 'r') # actual file
+	userpass = open('testpass.txt', 'r') # for testing
 	successes = open('success.txt', 'w')
 	deviceList = []
 
@@ -72,7 +109,8 @@ def check_passwords():
 				ssh.connect(ip, username=user, password=passw)
 				#print "try"
 			except AuthenticationException:
-				obj_json = {u"IPaddress": ip, u"port":22, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}
+				obj_json = {ip:{u"port":22, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+				# dict with IP as key and value is a dictionary of the other stuff
 				deviceList.append(obj_json)
 				#print "exception here"
 				continue
@@ -91,9 +129,11 @@ def check_passwords():
 				correctUsr = x[1]
 				correctPass = x[2]
 
-				newPass = changePassword(correctIP, correctUsr, correctPass)
-				obj_json = {u"IPaddress":ip, u"port":22, u"defaultUsr":user, u"defaultPass":passw, u"newPass":newPass}
-				deviceList.append(obj_json)
+				newPass = changePassword(correctIP, 22, correctUsr, correctPass)
+				#obj_json = {u"IPaddress":ip, u"port":22, u"defaultUsr":user, u"defaultPass":passw, u"newPass":newPass}
+				if newPass != 0:
+					obj_json = {ip:{u"port":22, u"defaultUsr":user, u"defaultPass":passw, u"newPass":newPass}}
+					deviceList.append(obj_json)
 				#print(json.dumps(obj_json))
 
 			devices.close()
@@ -120,8 +160,10 @@ def check_passwords():
 			time.sleep(4)
 			response = p.stdout.readline()
 			# try next username password combination if this one did not work
-			if "Login incorrect" in response:
-				obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}
+			#if "Login incorrect" in response:
+			if "login" in response:
+				#obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}
+				obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
 				deviceList.append(obj_json)
 				continue
 			# save info about devices with default username and password 	
@@ -139,9 +181,14 @@ def check_passwords():
 				correctUsr = x[1]
 				correctPass = x[2]
 
-				newPass = changePassword(correctIP, correctUsr, correctPass)
-				obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":user, u"defaultPass":password, u"newPass":newPass}
-				deviceList.append(obj_json)
+				newPass = changePassword(correctIP, 23, correctUsr, correctPass)
+				#obj_json = {u"IPaddress":ip, u"port":23, u"defaultUsr":user, u"defaultPass":password, u"newPass":newPass}
+				if newPass != 0:
+					obj_json = {ip:{u"port":23, u"defaultUsr":user, u"defaultPass":password, u"newPass":newPass}}
+					deviceList.append(obj_json)
+				else:
+					obj_json = {ip:{u"port":23, u"defaultUsr":"N/A", u"defaultPass":"N/A", u"newPass":"N/A"}}
+					deviceList.append(obj_json)
 				#print(json.dumps(obj_json))
 
 			devices.close()
@@ -153,16 +200,19 @@ def check_passwords():
 	for p in ports:
 		# call bash command to run ZMap on the network
 		# writes out the IP addresses on the network to a file
-		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses1.txt", IPrange1, "--max-sendto-failures", "17000000"])
-		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses2.txt", IPrange2, "--max-sendto-failures", "1000000"])
-		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses3.txt", IPrange3, "--max-sendto-failures", "1000000"])
+		# COMMENTED OUT FOR DEMO
+		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses1.txt", IPrange1, "--max-sendto-failures", "17000000"])
+		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses2.txt", IPrange2, "--max-sendto-failures", "1000000"])
+		#subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses3.txt", IPrange3, "--max-sendto-failures", "1000000"])
+		subprocess.call(["./zmap", "-p", p, "-o", "IPaddresses.txt", IPrange]) # for Raspberry Pi
 
 		# concatenate the 3 textfiles created
-		filenames = ['IPaddresses1.txt', 'IPaddresses2.txt', 'IPaddresses3.txt']
-		with open('IPaddresses.txt', 'w') as outfile:
-			for fname in filenames:
-				with open(fname) as infile:
-					outfile.write(infile.read())
+		# COMMENTED OUT FOR PRESENTATION
+		# filenames = ['IPaddresses1.txt', 'IPaddresses2.txt', 'IPaddresses3.txt']
+		# with open('IPaddresses.txt', 'w') as outfile:
+		# 	for fname in filenames:
+		# 		with open(fname) as infile:
+		# 			outfile.write(infile.read())
 
 		# go throught the IP addresses found on the network
 		IPaddresses = open('IPaddresses.txt', 'r')
@@ -186,4 +236,6 @@ def check_passwords():
 	userpass.close()
 	successes.close()
 	#outputfile.close()
+
+main()
 
