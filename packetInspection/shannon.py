@@ -1,3 +1,17 @@
+#==============================================================================
+# SPRING 2016 JUNIOR INDEPENDENT WORK
+#title           : shannon.py
+#description     : This program calculate the shannon entropy of a packet's 
+#                : payload in the form of a string. It returns the entropy
+#                : value (a double) as well as the maximum ASCII number found
+#
+#author          : Daniel Wood
+#advisor         : Nick Feamster
+#date            : May 5, 2017
+#usage           : shannon.shannon("testpayload")
+#==============================================================================
+
+
 import math
 import sys
 

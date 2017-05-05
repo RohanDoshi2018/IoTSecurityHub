@@ -1,3 +1,20 @@
+#==============================================================================
+# SPRING 2016 JUNIOR INDEPENDENT WORK
+#title           : analyze.py
+#description     : This program has two functions that can be called. 
+#                : analyze_all() analyzes all the .pcap files in a 
+#                : specified directory for plaintext sensitive information.
+#                : Additionally, the function analyze(filename, dict) can 
+#                : be called to analyze a single file and return the results
+#                : in a dictionary {"ip address", : ["string1", "string2"]}
+#                :
+#author          : Daniel Wood
+#advisor         : Nick Feamster
+#date            : May 5, 2017
+#usage           :python analyze.py
+#==============================================================================
+
+
 #!/usr/local/bin/python2.7
 
 import dpkt
@@ -63,9 +80,6 @@ def analyze(filename, ipdata):
         # LLMNR, DB-LSP-DI, udp
         if hasattr(tcp, 'dport'):
           if tcp.dport == 80 and len(tcp.data) > 0:
-            # print counter
-            # print tcp.data
-            # http = dpkt.http.Request(tcp.data)
             ret = shannon.shannon(tcp.data)
             ret2 = chisqr.chisqr(tcp.data)
 
@@ -76,6 +90,8 @@ def analyze(filename, ipdata):
             # shannon entropy test
             if (ret[0] < 6):
               sha.append(tcp.data)
+
+              # search for word in dictionary
               for word in lines:
                 if word in tcp.data:
                   string = format(tcp.data)
@@ -92,6 +108,7 @@ def analyze(filename, ipdata):
               chi.append(tcp.data)
               # print counter, ret2
 
+          # examine packets not on port 443 or 80 with nonzero payloads
           if (tcp.dport != 443 and tcp.dport != 80 and len(tcp.data) > 0):
             ret = shannon.shannon(tcp.data)
             ret2 = chisqr.chisqr(tcp.data)
@@ -104,6 +121,8 @@ def analyze(filename, ipdata):
             # shannon entropy test
             if (ret[0] < 6):
               sha.append(tcp.data)
+
+              # search for word in dictionary
               for word in lines:
                 if word in tcp.data:
                   string = format(tcp.data)
@@ -120,51 +139,17 @@ def analyze(filename, ipdata):
               chi.append(tcp.data)         
               # print counter, ret2
 
+      # count the number of TCP packets
       if ip.p==dpkt.ip.IP_PROTO_TCP: 
          tcpcounter+=1
 
+      # count the number of UDP packets
       if ip.p==dpkt.ip.IP_PROTO_UDP:
          udpcounter+=1
+
+  # return a dictionary of {"ip address", : ["string1", "string2"]}
+  f.close()
   return ipdata
-
-  # print "Total number of packets in the pcap file: ", counter
-  # print "Total number of ip packets: ", ipcounter
-  # print "Total number of tcp packets: ", tcpcounter
-  # print "Total number of udp packets: ", udpcounter
-
-  # words1, packets1 = dictSearch.dictSearch(asc)
-  # words2, packets2 = dictSearch.dictSearch(chi)
-  # words3, packets3 = dictSearch.dictSearch(sha)
-
-
-  # print "------------------------- ASCII ---------------------------------"
-  # for word, line in zip(words2, packets2):
-  #   line = format(line)
-  #   print word
-  #   print line
-  #   print
-
-  # print "------------------------- CHI SQUARE ------------------------------"
-  # for word, line in zip(words2, packets2):
-  #   line = format(line)
-  #   print word
-  #   print line
-  #   print
-
-  # print "------------------------- SHANNON ------------------------------"
-  # for word, line in zip(words3, packets3):
-  #   line = format(line)
-  #   payloads.append(line)
-  #   print word
-  #   print line
-  #   print
-
-
-  # data = {}
-  # data['payloads'] = payloads
-  # json_data = json.dumps(data)
-
-  # f.close()
 
 def analyze_all():
   ipdata={}
